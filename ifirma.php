@@ -20,7 +20,7 @@ class Ifirma extends Module
 		$this->name = 'ifirma';
 		$this->tab = 'billing_invoicing';
 		$this->version = '1.0';
-		$this->author = 'impSolutions.pl';
+		$this->author = 'impSolutions.pl & Power Media S.A.';
 		$this->limited_countries = array('pl');
 
 		parent::__construct();
@@ -44,6 +44,8 @@ class Ifirma extends Module
 	{
 		if(Tools::isSubmit('submitIfirmaSettings'))
 		{
+			Configuration::updateValue('ifirma_api_vatowiec', Tools::getValue('ifirma_api_vatowiec'));
+			Configuration::updateValue('ifirma_api_key_rachunek', Tools::getValue('ifirma_api_key_rachunek'));
 			Configuration::updateValue('ifirma_api_key_faktura', Tools::getValue('ifirma_api_key_faktura'));
 			Configuration::updateValue('ifirma_api_key_abonent', Tools::getValue('ifirma_api_key_abonent'));
 			Configuration::updateValue('ifirma_api_login', Tools::getValue('ifirma_api_login'));
@@ -75,6 +77,8 @@ class Ifirma extends Module
 	{
 		if (!parent::uninstall() 
 			OR !$this->uninstallDB() 
+			OR !Configuration::deleteByName('ifirma_api_vatowiec')
+			OR !Configuration::deleteByName('ifirma_api_key_rachunek')
 			OR !Configuration::deleteByName('ifirma_api_key_faktura')
 			OR !Configuration::deleteByName('ifirma_api_key_abonent')
 			OR !Configuration::deleteByName('ifirma_hash')
@@ -89,12 +93,28 @@ class Ifirma extends Module
 		$this->_html = '';
 
 		$this->_postProcess();
-
+		$vat_checked = '';
+		if(Tools::safeOutput(Tools::getValue('ifirma_api_vatowiec', Configuration::get('ifirma_api_vatowiec')))==true){
+			$vat_checked = 'checked="checked"';
+		}
 		$this->_html .= '
 		<form action="'.Tools::safeOutput($_SERVER['REQUEST_URI']).'" method="post" class="width4" style="margin: 0 auto;">
 		<fieldset>
 			<legend><img src="'._PS_ADMIN_IMG_.'prefs.gif" alt="Ustawienia" />Ustawienia</legend>
 				
+				<div style="clear: both; padding-top:15px;">
+					<label class="conf_title" for="ifirma_api_vatowiec">Jestem płatnikiem Vat:</label>
+					<div class="margin-form">	
+						<input type="checkbox" name="ifirma_api_vatowiec" id="ifirma_api_vatowiec" '.$vat_checked.' />
+						<p class="preference_description">Jestem płatnikiem Vat</p>	
+					</div>
+				</div><div style="clear: both; padding-top:15px;">
+					<label class="conf_title" for="ifirma_api_key_rachunek">Klucz do API - rachunek:</label>
+					<div class="margin-form">	
+						<input type="text" name="ifirma_api_key_rachunek" id="ifirma_api_key_rachunek" value="'.Tools::safeOutput(Tools::getValue('ifirma_api_key_rachunek', Configuration::get('ifirma_api_key_rachunek'))).'" size="50" />
+						<p class="preference_description">Klucz API rachunek</p>	
+					</div>
+				</div>
 				<div style="clear: both; padding-top:15px;">
 					<label class="conf_title" for="ifirma_api_key_faktura">Klucz do API - faktura:</label>
 					<div class="margin-form">	
@@ -150,6 +170,7 @@ class Ifirma extends Module
 			$this->smarty->assign('id_order',$id);
 			$this->smarty->assign('hash',Configuration::get('ifirma_hash'));
 			$this->smarty->assign('can_make_invoice',self::canMakeInvoice($id,'invoice'));
+			$this->smarty->assign('is_vatowiec',Configuration::get('ifirma_api_vatowiec'));
 
 			return $this->display(__FILE__,'order.tpl');
 		}
