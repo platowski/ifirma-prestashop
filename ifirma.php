@@ -189,22 +189,7 @@ class Ifirma extends Module
 		$this->customer_instance = new Customer($this->address_instance->id_customer);
 		if(!Validate::isLoadedObject($this->customer_instance)) die('Brak klienta o podanym ID');
 
-
-		if (version_compare(_PS_VERSION_, '1.5', '<')) 
-		{
-			
-			$carrier = new Carrier($this->order_instance->id_carrier);
-
-			$this->shipping = array();
-			$this->shipping[0]['id_carrier'] = $carrier->id;
-			$this->shipping[0]['shipping_cost_tax_incl'] = $this->order_instance->total_shipping;
-			$this->shipping[0]['state_name'] = $carrier->name;
-
-		}	
-		else
-		{
-			$this->shipping = $this->order_instance->getShipping();
-		}
+		$this->shipping = $this->order_instance->getShipping();
 		
 
 	}

@@ -60,8 +60,8 @@ function get_api_config_value_from_context($key,$API_CONFIG_FILE_PATH){
 
 function get_invoice_number_if_available($cart_order_id){
 	global $glob;
-	$sql = "select * from ifirma_invoice_map where document_type = 'invoice' and cart_order_id = ".mySQLSafe($cart_order_id);
-	$res = DB::getInstance()->ExecuteS($sql);
+	$sql = "select * from ifirma_invoice_map where cart_order_id = ".Tools::safeOutput(Tools::getValue('cart_order_id'));
+	$res = DB::getInstance()->executeS($sql);
 	return $res[0];
 }
 function can_process_request_for_invoice_generation($cart_order_id){

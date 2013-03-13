@@ -46,7 +46,7 @@ if(Ifirma::canMakeInvoice($id_order, 'invoice'))
 
 	// Faktura
 	$invoice = new Faktura(
-		$ifirma->order_instance->total_paid_real,
+		"0",
 		'IFI'.$ifirma->customer_instance->id,
 		'BRT',
 		date('Y-m-d'),
@@ -65,14 +65,7 @@ if(Ifirma::canMakeInvoice($id_order, 'invoice'))
 	foreach($products as $product)
 	{
 
-		if (version_compare(_PS_VERSION_, '1.5', '<')) 
-		{
-			$product_price = $product['product_price_wt'];
-		}	
-		else
-		{
-			$product_price = $product['unit_price_tax_incl'];
-		}
+		$product_price = $product['unit_price_tax_incl'];
 
 		$unit = 'szt.';
 		if(isset($product['unity']) && $product['unity'] != '') $unit = $product['unity'];
@@ -98,23 +91,18 @@ if(Ifirma::canMakeInvoice($id_order, 'invoice'))
 		foreach($ifirma->shipping as $s)
 		{
 			$tax = Tax::getCarrierTaxRate($s['id_carrier'], $ifirma->order_instance->id_address_delivery);
-
-			$invoice_position = new PozycjaFaktury($tax / 100, 1, $s['shipping_cost_tax_incl'], 'Wysyłka - '.$s['state_name'], 'usł.', 'PRC', NULL);
-			$invoice->dodajPozycjeFaktury($invoice_position);
+			if($s['shipping_cost_tax_incl'] >0){
+				$invoice_position = new PozycjaFaktury($tax / 100, 1, $s['shipping_cost_tax_incl'], 'Wysyłka - '.$s['state_name'], 'usł.', 'PRC', NULL);
+				$invoice->dodajPozycjeFaktury($invoice_position);
+			}
 		}
 	}
 
 	// Numer zamówienia w uwagach
-	if (version_compare(_PS_VERSION_, '1.5', '<')) 
-	{
-		$invoice->Uwagi('Zamówienie #'.$ifirma->order_instance->id);
-	}	
-	else
-	{
-		$invoice->Uwagi('Zamówienie #'.$ifirma->order_instance->reference);
-	}
-	
-	
+	$invoice->Uwagi('Zamówienie #'.$ifirma->order_instance->reference);
+	echo "<pre>";
+	var_dump($invoice);
+	echo "</pre>";
 
 	handle_invoice_generation((int)$id_order,$invoice);
 
